@@ -12,14 +12,15 @@ macro_rules! help {
 }
 macro_rules! invalid_arguments {
     ($str:expr) => {
-        eprintln!("INVALID PERMISSIONS: {}", $str);
+        eprintln!("INVALID ARGUMENT {}", $str);
         help!();
+        exit(1);
     }
 }
 
 macro_rules! invalid_permissions {
     ($str:expr) => {
-        eprintln!("{}", $str);
+        eprintln!("INVALID PERMISSIONS {}", $str);
         exit(1);
     }
 }
@@ -28,14 +29,19 @@ fn main() {
     let args: Vec<String> = env::args().collect();
     let command = match get_value_from_vector(&args, 1) {
         Ok(value) => value,
-        Err(_err) => exit(1),
+        Err(_err) => "",
     };
+    if(command.eq("") || args.len() <= 2) {
+        invalid_arguments!(format!("Invalid value: {}", command));
+    }
     let mut command_args = Vec::new();
     command_args.extend_from_slice(&args[2..args.len()]);
     match command {
         "add" => add(),
         "done" => done(),
-        _ => {invalid_arguments!(format!("Invalid value: {}", command));}
+        _ => {
+            invalid_arguments!(format!("Invalid value: {}", command));
+        }
     }
 
     println!("{:?}", command_args);
