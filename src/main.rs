@@ -1,8 +1,7 @@
-#[allow(unused)]
+#![allow(unused)]
 use std::env;
-use std::fmt::Error;
-use std::{fs, io};
-use std::fs::File;
+use std::{io};
+use std::fs::{OpenOptions};
 use std::io::{Read, Write};
 use std::process::exit;
 
@@ -13,6 +12,7 @@ macro_rules! help {
     println!("todolist show");
     }
 }
+
 macro_rules! invalid_arguments {
     ($str:expr) => {
         eprintln!("INVALID ARGUMENT {}", $str);
@@ -27,6 +27,7 @@ macro_rules! invalid_permissions {
         exit(1);
     }
 }
+const FILE_PATH: &str = "todo_list.txt";
 
 fn main() {
     let args: Vec<String> = env::args().collect();
@@ -57,7 +58,13 @@ fn get_value_from_vector(vector: &Vec<String>, index: usize) -> Result<&str, &st
 }
 
 fn add() {
-    let content = file_content();
+    let mut content = String::new();
+    match file_content(&mut content) {
+        Ok(())=>(),
+        Err(_) => {
+
+        }
+    }
     println!("{}", content);
 }
 
@@ -67,38 +74,29 @@ fn done() {
     match err {
         Ok(()) => (),
         Err(e) => {
-            println!("HI")
+            println!("{}", e)
         }
     };
 }
 
 fn show() {}
 
-fn file_content() -> String {
-    let file_result = File::open("something");
-    let mut file = file_result.unwrap_or_else(|err| {
-        let create_file = File::create("something");
-        match create_file {
-            Ok(created_file) => created_file,
-            Err(_) => {
-                invalid_permissions!("Not able to create a file");
-            }
-        }
-    });
-    let mut content = String::new();
-    file.read_to_string(&mut content).expect("TODO: panic message");
-    return content;
+fn file_content(content: &mut String) -> Result<(), io::Error> {
+    let mut file = OpenOptions::new()
+        .read(true)
+        .open(FILE_PATH)?;
+    file.read_to_string(content)?;
+    Ok(())
 }
 
-fn write_content(content: &str) -> Result<(), std::io::Error> {
-    let file_result = File::open("something");
-    let mut file = match file_result {
-        Ok(file) => file,
-        Err(_) => {
-            File::create("something")?
-        }
-    };
-    file.write_all(content.as_bytes())?;
+fn write_content(content: &str) -> Result<(), io::Error> {
+    let mut file = OpenOptions::new()
+        .write(true)
+        .create(true)
+        .append(false)
+        .truncate(true)
+        .open(FILE_PATH)?;
 
+    write!(file, "{}", content)?;
     Ok(())
 }
