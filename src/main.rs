@@ -72,6 +72,6 @@ fn file_content() {
             }
         }
     };
-    file.read
+    // file.read
 
 }
